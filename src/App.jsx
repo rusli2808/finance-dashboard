@@ -10,22 +10,9 @@ const C = {
 
 const initialTransactions = [];
 
-const cashflowData = [
-  { month: "Jan", income: 18200, expense: 13400 },
-  { month: "Feb", income: 21500, expense: 14800 },
-  { month: "Mar", income: 19800, expense: 15200 },
-  { month: "Apr", income: 24300, expense: 16100 },
-  { month: "May", income: 28000, expense: 17950 },
-  { month: "Jun", income: 26500, expense: 16800 },
-];
+const cashflowData = [];
 
-const expenseCategories = [
-  { name: "Payroll", value: 12200, color: "#2a6049" },
-  { name: "Operations", value: 2620, color: "#4a9070" },
-  { name: "Marketing", value: 950, color: "#7ab89a" },
-  { name: "Tech", value: 380, color: "#b8d8c8" },
-  { name: "Assets", value: 1800, color: "#c47d2a" },
-];
+const expenseCategories = [];
 
 const fmt = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 const fmtShort = (n) => n >= 1000000 ? `Rp${(n / 1000000).toFixed(1)}jt` : n >= 1000 ? `Rp${(n / 1000).toFixed(0)}rb` : `Rp${n}`;
