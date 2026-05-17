@@ -8,20 +8,7 @@ const C = {
   warningLight: "#fdf5e8", success: "#2a6049", successLight: "#e8f2ee", gold: "#b8952a",
 };
 
-const initialTransactions = [
-  { id: 1, date: "2024-05-01", desc: "Client Payment - Acme Corp", category: "Revenue", amount: 8500, type: "income" },
-  { id: 2, date: "2024-05-03", desc: "Office Rent", category: "Operations", amount: 2200, type: "expense" },
-  { id: 3, date: "2024-05-05", desc: "Client Payment - Nova Ltd", category: "Revenue", amount: 4200, type: "income" },
-  { id: 4, date: "2024-05-08", desc: "Salaries", category: "Payroll", amount: 9800, type: "expense" },
-  { id: 5, date: "2024-05-10", desc: "Software Subscriptions", category: "Tech", amount: 380, type: "expense" },
-  { id: 6, date: "2024-05-12", desc: "Consulting Fee - StarBiz", category: "Revenue", amount: 3100, type: "income" },
-  { id: 7, date: "2024-05-15", desc: "Marketing Ads", category: "Marketing", amount: 950, type: "expense" },
-  { id: 8, date: "2024-05-18", desc: "Client Payment - BlueSky", category: "Revenue", amount: 6700, type: "income" },
-  { id: 9, date: "2024-05-20", desc: "Internet & Utilities", category: "Operations", amount: 420, type: "expense" },
-  { id: 10, date: "2024-05-22", desc: "Equipment Purchase", category: "Assets", amount: 1800, type: "expense" },
-  { id: 11, date: "2024-05-25", desc: "Freelancer Payment", category: "Payroll", amount: 2400, type: "expense" },
-  { id: 12, date: "2024-05-28", desc: "Product Sales", category: "Revenue", amount: 5500, type: "income" },
-];
+const initialTransactions = [];
 
 const cashflowData = [
   { month: "Jan", income: 18200, expense: 13400 },
