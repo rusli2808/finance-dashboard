@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
+import { translations, detectLang, saveLang } from "./lang";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const C = {
@@ -54,7 +55,7 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
-function TransactionRow({ tx, onDelete }) {
+function TransactionRow({ tx, onDelete, t }) {
   const isIncome = tx.type === "pemasukan" || tx.type === "income";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 16px", borderBottom: `1px solid ${C.border}`, transition: "background 0.12s" }}
@@ -76,40 +77,40 @@ function TransactionRow({ tx, onDelete }) {
   );
 }
 
-function AddModal({ onAdd, onClose }) {
+function AddModal({ onAdd, onClose, t }) {
   const today = new Date();
   const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const [form, setForm] = useState({ date: formattedDate, desc: "", category: "Pendapatan", amount: "", type: "pemasukan" });
+  const [form, setForm] = useState({ date: formattedDate, desc: "", category: t.categories[0], amount: "", type: t.typeIncome });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const inputStyle = { width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" };
   return (
     <div style={{ position: "fixed", inset: 0, background: "#0006", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
       <div style={{ background: C.surface, borderRadius: 20, padding: 24, width: "100%", maxWidth: 380, boxShadow: "0 24px 60px #0002" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 700, color: C.text }}>Tambah Transaksi</span>
+          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 700, color: C.text }}>{t.modalTitle}</span>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, color: C.sub, cursor: "pointer" }}>×</button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", gap: 8 }}>
-            {["pemasukan", "pengeluaran"].map(t => (
-              <button key={t} onClick={() => set("type", t)} style={{
+            {[t.typeIncome, t.typeExpense].map(tp => (
+              <button key={tp} onClick={() => set("type", tp)} style={{
                 flex: 1, padding: "8px", borderRadius: 8,
-                border: `2px solid ${form.type === t ? (t === "pemasukan" ? C.accent : C.danger) : C.border}`,
-                background: form.type === t ? (t === "pemasukan" ? C.accentLight : C.dangerLight) : "transparent",
-                color: form.type === t ? (t === "pemasukan" ? C.accent : C.danger) : C.sub,
+                border: `2px solid ${form.type === tp ? (tp === t.typeIncome ? C.accent : C.danger) : C.border}`,
+                background: form.type === tp ? (tp === t.typeIncome ? C.accentLight : C.dangerLight) : "transparent",
+                color: form.type === tp ? (tp === t.typeIncome ? C.accent : C.danger) : C.sub,
                 fontWeight: 700, fontSize: 13, cursor: "pointer", textTransform: "capitalize"
-              }}>{t}</button>
+              }}>{tp}</button>
             ))}
           </div>
-          <input style={inputStyle} placeholder="Keterangan" value={form.desc} onChange={e => set("desc", e.target.value)} />
-          <input style={inputStyle} type="number" placeholder="Jumlah (Rp)" value={form.amount} onChange={e => set("amount", e.target.value)} />
+          <input style={inputStyle} placeholder={t.descPlaceholder} value={form.desc} onChange={e => set("desc", e.target.value)} />
+          <input style={inputStyle} type="number" placeholder={t.amountPlaceholder} value={form.amount} onChange={e => set("amount", e.target.value)} />
           <input style={inputStyle} type="date" value={form.date} onChange={e => set("date", e.target.value)} />
           <select style={inputStyle} value={form.category} onChange={e => set("category", e.target.value)}>
-            {["Pendapatan", "Gaji", "Operasional", "Marketing", "Teknologi", "Aset", "Lainnya"].map(c => <option key={c}>{c}</option>)}
+            {t.categories.map(c => <option key={c}>{c}</option>)}
           </select>
           <button onClick={() => { if (form.desc && form.amount) { onAdd({ ...form, amount: parseFloat(form.amount) }); onClose(); } }}
             style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 4 }}>
-            Tambah Transaksi
+            {t.btnSubmit}
           </button>
         </div>
       </div>
@@ -120,13 +121,23 @@ function AddModal({ onAdd, onClose }) {
 export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("ringkasan");
+  const [activeTab, setActiveTab] = useState("summary");
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState("semua");
+  const [filterType, setFilterType] = useState("all");
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [lang, setLang] = useState(detectLang());
   const isMobile = useIsMobile();
+  const t = translations[lang];
+
+  const toggleLang = () => {
+    const next = lang === 'id' ? 'en' : 'id';
+    setLang(next);
+    saveLang(next);
+    setActiveTab("summary");
+    setFilterType("all");
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -164,12 +175,12 @@ export default function App() {
 
   const cashflowData = useMemo(() => {
     const grouped = {};
-    transactions.forEach(t => {
-      const month = t.date?.slice(0, 7);
+    transactions.forEach(tx => {
+      const month = tx.date?.slice(0, 7);
       if (!month) return;
       if (!grouped[month]) grouped[month] = { month, income: 0, expense: 0 };
-      if (t.type === "pemasukan" || t.type === "income") grouped[month].income += Number(t.amount);
-      if (t.type === "pengeluaran" || t.type === "expense") grouped[month].expense += Number(t.amount);
+      if (tx.type === "pemasukan" || tx.type === "income") grouped[month].income += Number(tx.amount);
+      if (tx.type === "pengeluaran" || tx.type === "expense") grouped[month].expense += Number(tx.amount);
     });
     return Object.values(grouped).sort((a, b) => a.month.localeCompare(b.month));
   }, [transactions]);
@@ -177,16 +188,16 @@ export default function App() {
   const expenseCategories = useMemo(() => {
     const COLORS = ["#c0392b", "#e74c3c", "#e67e22", "#f39c12", "#c47d2a", "#e8a87c", "#f0d5b8"];
     const grouped = {};
-    transactions.filter(t => t.type === "pengeluaran" || t.type === "expense").forEach(t => {
-      if (!grouped[t.category]) grouped[t.category] = 0;
-      grouped[t.category] += Number(t.amount);
+    transactions.filter(tx => tx.type === "pengeluaran" || tx.type === "expense").forEach(tx => {
+      if (!grouped[tx.category]) grouped[tx.category] = 0;
+      grouped[tx.category] += Number(tx.amount);
     });
     return Object.entries(grouped).map(([name, value], i) => ({ name, value, color: COLORS[i % COLORS.length] }));
   }, [transactions]);
 
   const filtered = useMemo(() => transactions
-    .filter(t => filterType === "semua" || t.type === filterType)
-    .filter(t => (t.desc || "").toLowerCase().includes(search.toLowerCase()) || (t.category || "").toLowerCase().includes(search.toLowerCase()))
+    .filter(tx => filterType === "all" || tx.type === filterType)
+    .filter(tx => (tx.desc || "").toLowerCase().includes(search.toLowerCase()) || (tx.category || "").toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => new Date(b.date) - new Date(a.date)),
     [transactions, search, filterType]
   );
@@ -196,19 +207,24 @@ export default function App() {
       .from('transactions')
       .insert([{ desc: tx.desc, amount: tx.amount, type: tx.type, category: tx.category, date: tx.date, user_id: user.id }])
       .select();
-    if (data) setTransactions(t => [data[0], ...t]);
+    if (data) setTransactions(prev => [data[0], ...prev]);
   };
 
   const deleteTx = async (id) => {
     await supabase.from('transactions').delete().eq('id', id);
-    setTransactions(t => t.filter(x => x.id !== id));
+    setTransactions(prev => prev.filter(x => x.id !== id));
   };
 
-  const tabs = ["ringkasan", "arus kas", "pengeluaran", "transaksi"];
+  const tabs = [
+    { key: "summary", label: t.tabSummary },
+    { key: "cashflow", label: t.tabCashflow },
+    { key: "expenses", label: t.tabExpense },
+    { key: "transactions", label: t.tabTransaction },
+  ];
 
   if (authLoading) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "sans-serif", color: "#9b9488", fontSize: 14 }}>
-      Memuat...
+      {t.loadingApp}
     </div>
   );
 
@@ -233,54 +249,56 @@ export default function App() {
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14 }}>◈</div>
                 <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, fontSize: 17, color: C.text }}>FinanceOS</span>
-                <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>SME</span>
+                <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>{t.appTagline}</span>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {!isMobile && <span style={{ fontSize: 12, color: C.sub, maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>}
-                <button onClick={() => supabase.auth.signOut()} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 10px", color: C.sub, fontFamily: "inherit", fontWeight: 600, fontSize: 12, cursor: "pointer" }}>Keluar</button>
+                <button onClick={toggleLang} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 20, padding: "4px 10px", color: C.text, fontFamily: "inherit", fontWeight: 600, fontSize: 11, cursor: "pointer" }}>
+                  {lang === 'id' ? '🇬🇧' : '🇮🇩'}
+                </button>
+                <button onClick={() => supabase.auth.signOut()} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 10px", color: C.sub, fontFamily: "inherit", fontWeight: 600, fontSize: 12, cursor: "pointer" }}>{t.btnLogout}</button>
                 <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: isMobile ? "7px 12px" : "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>
-                  {isMobile ? "+ Tambah" : "+ Tambah Transaksi"}
+                  {isMobile ? t.btnAddShort : t.btnAdd}
                 </button>
               </div>
             </div>
             <div style={{ display: "flex", gap: 2, overflowX: "auto", borderTop: `1px solid ${C.border}` }}>
               {tabs.map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
                   padding: isMobile ? "8px 12px" : "8px 16px",
                   borderRadius: 0, border: "none",
-                  borderBottom: activeTab === tab ? `2px solid ${C.accent}` : "2px solid transparent",
+                  borderBottom: activeTab === tab.key ? `2px solid ${C.accent}` : "2px solid transparent",
                   background: "transparent",
-                  color: activeTab === tab ? C.accent : C.sub,
-                  fontWeight: activeTab === tab ? 700 : 500,
+                  color: activeTab === tab.key ? C.accent : C.sub,
+                  fontWeight: activeTab === tab.key ? 700 : 500,
                   fontSize: isMobile ? 12 : 13,
-                  cursor: "pointer", textTransform: "capitalize",
-                  whiteSpace: "nowrap", transition: "all 0.15s"
-                }}>{tab}</button>
+                  cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s"
+                }}>{tab.label}</button>
               ))}
             </div>
           </div>
         </div>
 
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px" : "28px 32px" }}>
-          {loading && <div style={{ textAlign: "center", padding: 60, color: C.sub, fontSize: 14 }}>Memuat data...</div>}
+          {loading && <div style={{ textAlign: "center", padding: 60, color: C.sub, fontSize: 14 }}>{t.loadingData}</div>}
 
-          {!loading && activeTab === "ringkasan" && (
+          {!loading && activeTab === "summary" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Ringkasan Bisnis</h1>
-                <p style={{ color: C.sub, fontSize: 13 }}>Semua angka dalam Rupiah</p>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>{t.pageTitle}</h1>
+                <p style={{ color: C.sub, fontSize: 13 }}>{t.pageSubtitle}</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 10 : 14 }}>
-                <KPICard label="Total Pendapatan" value={fmt(stats.income)} sub="dari transaksi" trend={12.4} color={C.accent} />
-                <KPICard label="Total Pengeluaran" value={fmt(stats.expense)} sub="dari transaksi" trend={-5.2} color={C.danger} />
-                <KPICard label="Laba Bersih" value={fmt(stats.profit)} sub="dari transaksi" trend={stats.profit >= 0 ? 18.7 : -18.7} color={C.gold} />
-                <KPICard label="Margin Laba" value={`${stats.margin}%`} sub="dari transaksi" trend={6.1} color={C.accentMid} />
+                <KPICard label={t.kpiRevenue} value={fmt(stats.income)} sub={t.kpiSub} trend={12.4} color={C.accent} />
+                <KPICard label={t.kpiExpense} value={fmt(stats.expense)} sub={t.kpiSub} trend={-5.2} color={C.danger} />
+                <KPICard label={t.kpiProfit} value={fmt(stats.profit)} sub={t.kpiSub} trend={stats.profit >= 0 ? 18.7 : -18.7} color={C.gold} />
+                <KPICard label={t.kpiMargin} value={`${stats.margin}%`} sub={t.kpiSub} trend={6.1} color={C.accentMid} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr", gap: 14 }}>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
                   <div style={{ marginBottom: 14 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Pendapatan vs Pengeluaran</div>
-                    <div style={{ fontSize: 12, color: C.sub }}>Tren per bulan</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{t.chartTitle}</div>
+                    <div style={{ fontSize: 12, color: C.sub }}>{t.chartSub}</div>
                   </div>
                   <ResponsiveContainer width="100%" height={isMobile ? 160 : 200}>
                     <AreaChart data={cashflowData}>
@@ -298,18 +316,18 @@ export default function App() {
                       <XAxis dataKey="month" tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} tickFormatter={fmtShort} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="income" name="Pendapatan" stroke={C.accent} strokeWidth={2} fill="url(#incGrad)" />
-                      <Area type="monotone" dataKey="expense" name="Pengeluaran" stroke={C.danger} strokeWidth={2} fill="url(#expGrad)" />
+                      <Area type="monotone" dataKey="income" name={t.income} stroke={C.accent} strokeWidth={2} fill="url(#incGrad)" />
+                      <Area type="monotone" dataKey="expense" name={t.expense} stroke={C.danger} strokeWidth={2} fill="url(#expGrad)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
                   <div style={{ marginBottom: 14 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Rincian Pengeluaran</div>
-                    <div style={{ fontSize: 12, color: C.sub }}>Per kategori</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{t.pieTitle}</div>
+                    <div style={{ fontSize: 12, color: C.sub }}>{t.pieSub}</div>
                   </div>
                   {expenseCategories.length === 0
-                    ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: "20px 0" }}>Belum ada pengeluaran</div>
+                    ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: "20px 0" }}>{t.noExpense}</div>
                     : <>
                       <ResponsiveContainer width="100%" height={120}>
                         <PieChart>
@@ -334,34 +352,34 @@ export default function App() {
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
                 <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Transaksi Terbaru</div>
-                  <button onClick={() => setActiveTab("transaksi")} style={{ background: "none", border: "none", color: C.accent, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>Lihat semua →</button>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{t.recentTitle}</div>
+                  <button onClick={() => setActiveTab("transactions")} style={{ background: "none", border: "none", color: C.accent, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>{t.viewAll}</button>
                 </div>
                 {transactions.length === 0
-                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub, fontSize: 13 }}>Belum ada transaksi — klik "+ Tambah" untuk mulai</div>
-                  : transactions.slice(0, 5).map(tx => <TransactionRow key={tx.id} tx={tx} onDelete={deleteTx} />)
+                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub, fontSize: 13 }}>{t.noTransaction}</div>
+                  : transactions.slice(0, 5).map(tx => <TransactionRow key={tx.id} tx={tx} onDelete={deleteTx} t={t} />)
                 }
               </div>
             </div>
           )}
 
-          {!loading && activeTab === "arus kas" && (
+          {!loading && activeTab === "cashflow" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Arus Kas</h1>
-                <p style={{ color: C.sub, fontSize: 13 }}>Pendapatan vs pengeluaran per bulan</p>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>{t.cashflowTitle}</h1>
+                <p style={{ color: C.sub, fontSize: 13 }}>{t.cashflowSub}</p>
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
                 {cashflowData.length === 0
-                  ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: 40 }}>Belum ada data transaksi</div>
+                  ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: 40 }}>{t.noData}</div>
                   : <ResponsiveContainer width="100%" height={isMobile ? 220 : 320}>
                     <BarChart data={cashflowData} barGap={4}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
                       <XAxis dataKey="month" tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} tickFormatter={fmtShort} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="income" name="Pendapatan" fill={C.accent} radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="expense" name="Pengeluaran" fill={C.danger} radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="income" name={t.income} fill={C.accent} radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="expense" name={t.expense} fill={C.danger} radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 }
@@ -373,10 +391,10 @@ export default function App() {
                     <div key={m.month} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "16px" }}>
                       <div style={{ fontWeight: 700, color: C.sub, fontSize: 12, marginBottom: 10 }}>{m.month}</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 13, color: C.sub }}>Pendapatan</span><span style={{ fontWeight: 700, color: C.accent, fontSize: 13 }}>{fmtShort(m.income)}</span></div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 13, color: C.sub }}>Pengeluaran</span><span style={{ fontWeight: 700, color: C.danger, fontSize: 13 }}>{fmtShort(m.expense)}</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 13, color: C.sub }}>{t.income}</span><span style={{ fontWeight: 700, color: C.accent, fontSize: 13 }}>{fmtShort(m.income)}</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 13, color: C.sub }}>{t.expense}</span><span style={{ fontWeight: 700, color: C.danger, fontSize: 13 }}>{fmtShort(m.expense)}</span></div>
                         <div style={{ height: 1, background: C.border, margin: "4px 0" }} />
-                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Laba</span><span style={{ fontWeight: 800, color: net >= 0 ? C.accent : C.danger, fontSize: 14 }}>{fmtShort(net)}</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{t.profit}</span><span style={{ fontWeight: 800, color: net >= 0 ? C.accent : C.danger, fontSize: 14 }}>{fmtShort(net)}</span></div>
                       </div>
                     </div>
                   );
@@ -385,20 +403,20 @@ export default function App() {
             </div>
           )}
 
-          {!loading && activeTab === "pengeluaran" && (
+          {!loading && activeTab === "expenses" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Analisis Pengeluaran</h1>
-                <p style={{ color: C.sub, fontSize: 13 }}>Kemana uang kamu pergi</p>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>{t.expenseTitle}</h1>
+                <p style={{ color: C.sub, fontSize: 13 }}>{t.expenseSub}</p>
               </div>
               {expenseCategories.length === 0
-                ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: 60 }}>Belum ada data pengeluaran</div>
+                ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: 60 }}>{t.noExpenseData}</div>
                 : <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
                   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 14 }}>Per Kategori</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 14 }}>{t.byCategory}</div>
                     <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
-                        <Pie data={expenseCategories} cx="50%" cy="50%" outerRadius={80} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                        <Pie data={expenseCategories} cx="50%" cy="50%" outerRadius={80} paddingAngle={3} dataKey="value" label={({ percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
                           {expenseCategories.map((e, i) => <Cell key={i} fill={e.color} />)}
                         </Pie>
                         <Tooltip formatter={(v) => fmt(v)} />
@@ -406,7 +424,7 @@ export default function App() {
                     </ResponsiveContainer>
                   </div>
                   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 14 }}>Rincian</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 14 }}>{t.breakdown}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {expenseCategories.map(e => {
                         const total = expenseCategories.reduce((s, x) => s + x.value, 0);
@@ -433,32 +451,32 @@ export default function App() {
             </div>
           )}
 
-          {!loading && activeTab === "transaksi" && (
+          {!loading && activeTab === "transactions" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                 <div>
-                  <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Transaksi</h1>
-                  <p style={{ color: C.sub, fontSize: 13 }}>{filtered.length} data</p>
+                  <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>{t.transactionTitle}</h1>
+                  <p style={{ color: C.sub, fontSize: 13 }}>{filtered.length} {t.dataCount}</p>
                 </div>
-                <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Tambah</button>
+                <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>{t.btnAddShort}</button>
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <input placeholder="Cari transaksi..." value={search} onChange={e => setSearch(e.target.value)}
+                <input placeholder={t.searchPlaceholder} value={search} onChange={e => setSearch(e.target.value)}
                   style={{ flex: 1, minWidth: 120, padding: "9px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none" }} />
-                {["semua", "pemasukan", "pengeluaran"].map(f => (
+                {[t.filterAll, t.filterIncome, t.filterExpense].map(f => (
                   <button key={f} onClick={() => setFilterType(f)} style={{ padding: "9px 12px", borderRadius: 10, border: `1px solid ${filterType === f ? C.accent : C.border}`, background: filterType === f ? C.accentLight : C.surface, color: filterType === f ? C.accent : C.sub, fontWeight: 600, fontSize: 12, cursor: "pointer", textTransform: "capitalize" }}>{f}</button>
                 ))}
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
                 {filtered.length === 0
-                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub }}>Tidak ada transaksi</div>
-                  : filtered.map(tx => <TransactionRow key={tx.id} tx={tx} onDelete={deleteTx} />)}
+                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub }}>{t.noResult}</div>
+                  : filtered.map(tx => <TransactionRow key={tx.id} tx={tx} onDelete={deleteTx} t={t} />)}
               </div>
             </div>
           )}
         </div>
       </div>
-      {showModal && <AddModal onAdd={addTx} onClose={() => setShowModal(false)} />}
+      {showModal && <AddModal onAdd={addTx} onClose={() => setShowModal(false)} t={t} />}
     </>
   );
 }
