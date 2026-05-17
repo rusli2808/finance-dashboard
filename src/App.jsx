@@ -183,24 +183,37 @@ export default function App() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: ${C.bg}; font-family: 'Instrument Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }
-        input, select { font-family: 'Instrument Sans', sans-serif; }
-      `}</style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: ${C.bg}; font-family: 'Instrument Sans', sans-serif; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }
+  input, select { font-family: 'Instrument Sans', sans-serif; }
+
+  @media (max-width: 768px) {
+    .header-inner { flex-wrap: wrap; gap: 10px; padding: 10px 0; height: auto !important; }
+    .nav-tabs { overflow-x: auto; white-space: nowrap; width: 100%; padding-bottom: 4px; }
+    .nav-tabs button { font-size: 12px !important; padding: 5px 10px !important; }
+    .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+    .chart-grid { grid-template-columns: 1fr !important; }
+    .expense-grid { grid-template-columns: 1fr !important; }
+    .cashflow-grid { grid-template-columns: 1fr !important; }
+    .main-padding { padding: 16px !important; }
+    .header-padding { padding: 0 16px !important; }
+    .add-btn span { display: none; }
+  }
+`}</style>
 
       <div style={{ minHeight: "100vh", background: C.bg }}>
-        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "0 32px" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
+        <div className="header-padding" style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "0 32px" }}>
+          <div className="header-inner" style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 15 }}>◈</div>
               <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, fontSize: 18, color: C.text }}>FinanceOS</span>
               <span style={{ fontSize: 11, background: C.accentLight, color: C.accent, borderRadius: 6, padding: "2px 8px", fontWeight: 700, marginLeft: 4 }}>SME</span>
             </div>
-            <div style={{ display: "flex", gap: 4 }}>
+            <div className="nav-tabs" style={{ display: "flex", gap: 4 }}>
               {tabs.map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: activeTab === tab ? C.accentLight : "transparent", color: activeTab === tab ? C.accent : C.sub, fontWeight: 600, fontSize: 13, cursor: "pointer", textTransform: "capitalize", transition: "all 0.15s" }}>{tab}</button>
               ))}
@@ -209,7 +222,7 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 32px" }}>
+        <div className="main-padding" style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 32px" }}>
 
           {loading && <div style={{ textAlign: "center", padding: 60, color: C.sub, fontSize: 14 }}>Memuat data...</div>}
 
@@ -219,13 +232,13 @@ export default function App() {
                 <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Ringkasan Bisnis</h1>
                 <p style={{ color: C.sub, fontSize: 14 }}>Semua angka dalam Rupiah</p>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+              <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
                 <KPICard label="Total Pendapatan" value={fmt(stats.income)} sub="dari transaksi" trend={12.4} color={C.accent} />
                 <KPICard label="Total Pengeluaran" value={fmt(stats.expense)} sub="dari transaksi" trend={-5.2} color={C.danger} />
                 <KPICard label="Laba Bersih" value={fmt(stats.profit)} sub="dari transaksi" trend={stats.profit >= 0 ? 18.7 : -18.7} color={C.gold} />
                 <KPICard label="Margin Laba" value={`${stats.margin}%`} sub="dari transaksi" trend={6.1} color={C.accentMid} />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+              <div className="chart-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px 22px" }}>
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Pendapatan vs Pengeluaran</div>
@@ -315,7 +328,7 @@ export default function App() {
                   </ResponsiveContainer>
                 }
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              <div className="cashflow-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
                 {cashflowData.slice(-3).map(m => {
                   const net = m.income - m.expense;
                   return (
@@ -342,7 +355,7 @@ export default function App() {
               </div>
               {expenseCategories.length === 0
                 ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: 60 }}>Belum ada data pengeluaran</div>
-                : <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                : <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
                   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 16 }}>Per Kategori</div>
                     <ResponsiveContainer width="100%" height={220}>
