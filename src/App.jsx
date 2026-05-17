@@ -1,3 +1,4 @@
+import ResetPassword from "./ResetPassword";
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -119,6 +120,10 @@ function AddModal({ onAdd, onClose, t }) {
 }
 
 export default function App() {
+  // Detect reset password page
+if (window.location.pathname === '/reset-password' || window.location.hash.includes('access_token')) {
+  return <ResetPassword />;
+}
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("summary");
