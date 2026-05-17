@@ -12,6 +12,16 @@ const C = {
 const fmt = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 const fmtShort = (n) => n >= 1000000 ? `Rp${(n / 1000000).toFixed(1)}jt` : n >= 1000 ? `Rp${(n / 1000).toFixed(0)}rb` : `Rp${n}`;
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
+
 function KPICard({ label, value, sub, trend, color = C.accent }) {
   const up = trend >= 0;
   return (
@@ -70,10 +80,11 @@ function AddModal({ onAdd, onClose }) {
   const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   const [form, setForm] = useState({ date: formattedDate, desc: "", category: "Pendapatan", amount: "", type: "pemasukan" });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const isMobile = useIsMobile();
   const inputStyle = { width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" };
   return (
-    <div style={{ position: "fixed", inset: 0, background: "#0006", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
-      <div style={{ background: C.surface, borderRadius: 20, padding: 28, width: 380, boxShadow: "0 24px 60px #0002" }}>
+    <div style={{ position: "fixed", inset: 0, background: "#0006", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
+      <div style={{ background: C.surface, borderRadius: 20, padding: 24, width: "100%", maxWidth: 380, boxShadow: "0 24px 60px #0002" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <span style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 700, color: C.text }}>Tambah Transaksi</span>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, color: C.sub, cursor: "pointer" }}>×</button>
@@ -113,6 +124,7 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("semua");
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchTransactions();
@@ -183,68 +195,78 @@ export default function App() {
   return (
     <>
       <style>{`
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: ${C.bg}; font-family: 'Instrument Sans', sans-serif; }
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }
-  input, select { font-family: 'Instrument Sans', sans-serif; }
-
-  @media (max-width: 768px) {
-    .header-inner { flex-wrap: wrap; gap: 10px; padding: 10px 0; height: auto !important; }
-    .nav-tabs { overflow-x: auto; white-space: nowrap; width: 100%; padding-bottom: 4px; }
-    .nav-tabs button { font-size: 12px !important; padding: 5px 10px !important; }
-    .kpi-grid { grid-template-columns: 1fr 1fr !important; }
-    .chart-grid { grid-template-columns: 1fr !important; }
-    .expense-grid { grid-template-columns: 1fr !important; }
-    .cashflow-grid { grid-template-columns: 1fr !important; }
-    .main-padding { padding: 16px !important; }
-    .header-padding { padding: 0 16px !important; }
-    .add-btn span { display: none; }
-  }
-`}</style>
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: ${C.bg}; font-family: 'Instrument Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }
+        input, select { font-family: 'Instrument Sans', sans-serif; }
+      `}</style>
 
       <div style={{ minHeight: "100vh", background: C.bg }}>
-        <div className="header-padding" style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "0 32px" }}>
-          <div className="header-inner" style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 15 }}>◈</div>
-              <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, fontSize: 18, color: C.text }}>FinanceOS</span>
-              <span style={{ fontSize: 11, background: C.accentLight, color: C.accent, borderRadius: 6, padding: "2px 8px", fontWeight: 700, marginLeft: 4 }}>SME</span>
+
+        {/* Header */}
+        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: isMobile ? "0 16px" : "0 32px" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+            {/* Top row: logo + button */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14 }}>◈</div>
+                <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, fontSize: 17, color: C.text }}>FinanceOS</span>
+                <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>SME</span>
+              </div>
+              <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: isMobile ? "7px 12px" : "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>
+                {isMobile ? "+ Tambah" : "+ Tambah Transaksi"}
+              </button>
             </div>
-            <div className="nav-tabs" style={{ display: "flex", gap: 4 }}>
+            {/* Nav tabs — scrollable on mobile */}
+            <div style={{ display: "flex", gap: 2, overflowX: "auto", paddingBottom: 0, borderTop: `1px solid ${C.border}` }}>
               {tabs.map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: activeTab === tab ? C.accentLight : "transparent", color: activeTab === tab ? C.accent : C.sub, fontWeight: 600, fontSize: 13, cursor: "pointer", textTransform: "capitalize", transition: "all 0.15s" }}>{tab}</button>
+                <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                  padding: isMobile ? "8px 12px" : "8px 16px",
+                  borderRadius: 0, border: "none",
+                  borderBottom: activeTab === tab ? `2px solid ${C.accent}` : "2px solid transparent",
+                  background: "transparent",
+                  color: activeTab === tab ? C.accent : C.sub,
+                  fontWeight: activeTab === tab ? 700 : 500,
+                  fontSize: isMobile ? 12 : 13,
+                  cursor: "pointer", textTransform: "capitalize",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.15s"
+                }}>{tab}</button>
               ))}
             </div>
-            <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Tambah Transaksi</button>
           </div>
         </div>
 
-        <div className="main-padding" style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 32px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px" : "28px 32px" }}>
 
           {loading && <div style={{ textAlign: "center", padding: 60, color: C.sub, fontSize: 14 }}>Memuat data...</div>}
 
           {!loading && activeTab === "ringkasan" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Ringkasan Bisnis</h1>
-                <p style={{ color: C.sub, fontSize: 14 }}>Semua angka dalam Rupiah</p>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Ringkasan Bisnis</h1>
+                <p style={{ color: C.sub, fontSize: 13 }}>Semua angka dalam Rupiah</p>
               </div>
-              <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+
+              {/* KPI Cards */}
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 10 : 14 }}>
                 <KPICard label="Total Pendapatan" value={fmt(stats.income)} sub="dari transaksi" trend={12.4} color={C.accent} />
                 <KPICard label="Total Pengeluaran" value={fmt(stats.expense)} sub="dari transaksi" trend={-5.2} color={C.danger} />
                 <KPICard label="Laba Bersih" value={fmt(stats.profit)} sub="dari transaksi" trend={stats.profit >= 0 ? 18.7 : -18.7} color={C.gold} />
                 <KPICard label="Margin Laba" value={`${stats.margin}%`} sub="dari transaksi" trend={6.1} color={C.accentMid} />
               </div>
-              <div className="chart-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
-                <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px 22px" }}>
-                  <div style={{ marginBottom: 16 }}>
+
+              {/* Charts */}
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr", gap: 14 }}>
+                <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
+                  <div style={{ marginBottom: 14 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Pendapatan vs Pengeluaran</div>
                     <div style={{ fontSize: 12, color: C.sub }}>Tren per bulan</div>
                   </div>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={isMobile ? 160 : 200}>
                     <AreaChart data={cashflowData}>
                       <defs>
                         <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
@@ -257,25 +279,25 @@ export default function App() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: C.sub }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 11, fill: C.sub }} axisLine={false} tickLine={false} tickFormatter={fmtShort} />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} tickFormatter={fmtShort} />
                       <Tooltip content={<CustomTooltip />} />
                       <Area type="monotone" dataKey="income" name="Pendapatan" stroke={C.accent} strokeWidth={2} fill="url(#incGrad)" />
                       <Area type="monotone" dataKey="expense" name="Pengeluaran" stroke={C.danger} strokeWidth={2} fill="url(#expGrad)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px 22px" }}>
-                  <div style={{ marginBottom: 16 }}>
+                <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
+                  <div style={{ marginBottom: 14 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Rincian Pengeluaran</div>
                     <div style={{ fontSize: 12, color: C.sub }}>Per kategori</div>
                   </div>
                   {expenseCategories.length === 0
                     ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: "20px 0" }}>Belum ada pengeluaran</div>
                     : <>
-                      <ResponsiveContainer width="100%" height={140}>
+                      <ResponsiveContainer width="100%" height={120}>
                         <PieChart>
-                          <Pie data={expenseCategories} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
+                          <Pie data={expenseCategories} cx="50%" cy="50%" innerRadius={35} outerRadius={55} paddingAngle={3} dataKey="value">
                             {expenseCategories.map((e, i) => <Cell key={i} fill={e.color} />)}
                           </Pie>
                           <Tooltip formatter={(v) => fmtShort(v)} />
@@ -294,13 +316,15 @@ export default function App() {
                   }
                 </div>
               </div>
+
+              {/* Recent Transactions */}
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Transaksi Terbaru</div>
                   <button onClick={() => setActiveTab("transaksi")} style={{ background: "none", border: "none", color: C.accent, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>Lihat semua →</button>
                 </div>
                 {transactions.length === 0
-                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub, fontSize: 13 }}>Belum ada transaksi — klik "+ Tambah Transaksi" untuk mulai</div>
+                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub, fontSize: 13 }}>Belum ada transaksi — klik "+ Tambah" untuk mulai</div>
                   : transactions.slice(0, 5).map(tx => <TransactionRow key={tx.id} tx={tx} onDelete={deleteTx} />)
                 }
               </div>
@@ -308,19 +332,19 @@ export default function App() {
           )}
 
           {!loading && activeTab === "arus kas" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Arus Kas</h1>
-                <p style={{ color: C.sub, fontSize: 14 }}>Pendapatan vs pengeluaran per bulan</p>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Arus Kas</h1>
+                <p style={{ color: C.sub, fontSize: 13 }}>Pendapatan vs pengeluaran per bulan</p>
               </div>
-              <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
+              <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
                 {cashflowData.length === 0
                   ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: 40 }}>Belum ada data transaksi</div>
-                  : <ResponsiveContainer width="100%" height={320}>
+                  : <ResponsiveContainer width="100%" height={isMobile ? 220 : 320}>
                     <BarChart data={cashflowData} barGap={4}>
                       <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 12, fill: C.sub }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 12, fill: C.sub }} axisLine={false} tickLine={false} tickFormatter={fmtShort} />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: C.sub }} axisLine={false} tickLine={false} tickFormatter={fmtShort} />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar dataKey="income" name="Pendapatan" fill={C.accent} radius={[6, 6, 0, 0]} />
                       <Bar dataKey="expense" name="Pengeluaran" fill={C.danger} radius={[6, 6, 0, 0]} />
@@ -328,11 +352,11 @@ export default function App() {
                   </ResponsiveContainer>
                 }
               </div>
-              <div className="cashflow-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 12 }}>
                 {cashflowData.slice(-3).map(m => {
                   const net = m.income - m.expense;
                   return (
-                    <div key={m.month} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "18px 20px" }}>
+                    <div key={m.month} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "16px" }}>
                       <div style={{ fontWeight: 700, color: C.sub, fontSize: 12, marginBottom: 10 }}>{m.month}</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 13, color: C.sub }}>Pendapatan</span><span style={{ fontWeight: 700, color: C.accent, fontSize: 13 }}>{fmtShort(m.income)}</span></div>
@@ -348,27 +372,27 @@ export default function App() {
           )}
 
           {!loading && activeTab === "pengeluaran" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Analisis Pengeluaran</h1>
-                <p style={{ color: C.sub, fontSize: 14 }}>Kemana uang kamu pergi</p>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Analisis Pengeluaran</h1>
+                <p style={{ color: C.sub, fontSize: 13 }}>Kemana uang kamu pergi</p>
               </div>
               {expenseCategories.length === 0
                 ? <div style={{ textAlign: "center", color: C.sub, fontSize: 13, padding: 60 }}>Belum ada data pengeluaran</div>
-                : <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-                  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 16 }}>Per Kategori</div>
-                    <ResponsiveContainer width="100%" height={220}>
+                : <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
+                  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 14 }}>Per Kategori</div>
+                    <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
-                        <Pie data={expenseCategories} cx="50%" cy="50%" outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                        <Pie data={expenseCategories} cx="50%" cy="50%" outerRadius={80} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
                           {expenseCategories.map((e, i) => <Cell key={i} fill={e.color} />)}
                         </Pie>
                         <Tooltip formatter={(v) => fmt(v)} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 16 }}>Rincian</div>
+                  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 14 }}>Rincian</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {expenseCategories.map(e => {
                         const total = expenseCategories.reduce((s, x) => s + x.value, 0);
@@ -396,19 +420,19 @@ export default function App() {
           )}
 
           {!loading && activeTab === "transaksi" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                 <div>
-                  <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Transaksi</h1>
-                  <p style={{ color: C.sub, fontSize: 14 }}>{filtered.length} data</p>
+                  <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Transaksi</h1>
+                  <p style={{ color: C.sub, fontSize: 13 }}>{filtered.length} data</p>
                 </div>
-                <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Tambah</button>
+                <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Tambah</button>
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <input placeholder="Cari transaksi..." value={search} onChange={e => setSearch(e.target.value)}
-                  style={{ flex: 1, padding: "9px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none" }} />
+                  style={{ flex: 1, minWidth: 120, padding: "9px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none" }} />
                 {["semua", "pemasukan", "pengeluaran"].map(f => (
-                  <button key={f} onClick={() => setFilterType(f)} style={{ padding: "9px 16px", borderRadius: 10, border: `1px solid ${filterType === f ? C.accent : C.border}`, background: filterType === f ? C.accentLight : C.surface, color: filterType === f ? C.accent : C.sub, fontWeight: 600, fontSize: 13, cursor: "pointer", textTransform: "capitalize" }}>{f}</button>
+                  <button key={f} onClick={() => setFilterType(f)} style={{ padding: "9px 12px", borderRadius: 10, border: `1px solid ${filterType === f ? C.accent : C.border}`, background: filterType === f ? C.accentLight : C.surface, color: filterType === f ? C.accent : C.sub, fontWeight: 600, fontSize: 12, cursor: "pointer", textTransform: "capitalize" }}>{f}</button>
                 ))}
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
