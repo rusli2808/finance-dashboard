@@ -1,0 +1,22 @@
+{
+  "name": "FinanceOS",
+  "short_name": "FinanceOS",
+  "description": "Dashboard keuangan untuk bisnis kamu",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f3",
+  "theme_color": "#2a6049",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
