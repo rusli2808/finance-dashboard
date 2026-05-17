@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "./supabase";
+import Auth from "./Auth";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const C = {
@@ -80,7 +81,6 @@ function AddModal({ onAdd, onClose }) {
   const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   const [form, setForm] = useState({ date: formattedDate, desc: "", category: "Pendapatan", amount: "", type: "pemasukan" });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const isMobile = useIsMobile();
   const inputStyle = { width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" };
   return (
     <div style={{ position: "fixed", inset: 0, background: "#0006", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "16px" }}>
@@ -124,11 +124,25 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("semua");
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    fetchTransactions();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user) fetchTransactions();
+    else setLoading(false);
+  }, [user]);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -180,7 +194,7 @@ export default function App() {
   const addTx = async (tx) => {
     const { data } = await supabase
       .from('transactions')
-      .insert([{ desc: tx.desc, amount: tx.amount, type: tx.type, category: tx.category, date: tx.date }])
+      .insert([{ desc: tx.desc, amount: tx.amount, type: tx.type, category: tx.category, date: tx.date, user_id: user.id }])
       .select();
     if (data) setTransactions(t => [data[0], ...t]);
   };
@@ -191,6 +205,14 @@ export default function App() {
   };
 
   const tabs = ["ringkasan", "arus kas", "pengeluaran", "transaksi"];
+
+  if (authLoading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "sans-serif", color: "#9b9488", fontSize: 14 }}>
+      Memuat...
+    </div>
+  );
+
+  if (!user) return <Auth />;
 
   return (
     <>
@@ -205,23 +227,23 @@ export default function App() {
       `}</style>
 
       <div style={{ minHeight: "100vh", background: C.bg }}>
-
-        {/* Header */}
         <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: isMobile ? "0 16px" : "0 32px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            {/* Top row: logo + button */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14 }}>◈</div>
                 <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, fontSize: 17, color: C.text }}>FinanceOS</span>
                 <span style={{ fontSize: 10, background: C.accentLight, color: C.accent, borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>SME</span>
               </div>
-              <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: isMobile ? "7px 12px" : "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>
-                {isMobile ? "+ Tambah" : "+ Tambah Transaksi"}
-              </button>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {!isMobile && <span style={{ fontSize: 12, color: C.sub, maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>}
+                <button onClick={() => supabase.auth.signOut()} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 10px", color: C.sub, fontFamily: "inherit", fontWeight: 600, fontSize: 12, cursor: "pointer" }}>Keluar</button>
+                <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: isMobile ? "7px 12px" : "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}>
+                  {isMobile ? "+ Tambah" : "+ Tambah Transaksi"}
+                </button>
+              </div>
             </div>
-            {/* Nav tabs — scrollable on mobile */}
-            <div style={{ display: "flex", gap: 2, overflowX: "auto", paddingBottom: 0, borderTop: `1px solid ${C.border}` }}>
+            <div style={{ display: "flex", gap: 2, overflowX: "auto", borderTop: `1px solid ${C.border}` }}>
               {tabs.map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)} style={{
                   padding: isMobile ? "8px 12px" : "8px 16px",
@@ -232,8 +254,7 @@ export default function App() {
                   fontWeight: activeTab === tab ? 700 : 500,
                   fontSize: isMobile ? 12 : 13,
                   cursor: "pointer", textTransform: "capitalize",
-                  whiteSpace: "nowrap",
-                  transition: "all 0.15s"
+                  whiteSpace: "nowrap", transition: "all 0.15s"
                 }}>{tab}</button>
               ))}
             </div>
@@ -241,7 +262,6 @@ export default function App() {
         </div>
 
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px" : "28px 32px" }}>
-
           {loading && <div style={{ textAlign: "center", padding: 60, color: C.sub, fontSize: 14 }}>Memuat data...</div>}
 
           {!loading && activeTab === "ringkasan" && (
@@ -250,16 +270,12 @@ export default function App() {
                 <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: isMobile ? 22 : 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Ringkasan Bisnis</h1>
                 <p style={{ color: C.sub, fontSize: 13 }}>Semua angka dalam Rupiah</p>
               </div>
-
-              {/* KPI Cards */}
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 10 : 14 }}>
                 <KPICard label="Total Pendapatan" value={fmt(stats.income)} sub="dari transaksi" trend={12.4} color={C.accent} />
                 <KPICard label="Total Pengeluaran" value={fmt(stats.expense)} sub="dari transaksi" trend={-5.2} color={C.danger} />
                 <KPICard label="Laba Bersih" value={fmt(stats.profit)} sub="dari transaksi" trend={stats.profit >= 0 ? 18.7 : -18.7} color={C.gold} />
                 <KPICard label="Margin Laba" value={`${stats.margin}%`} sub="dari transaksi" trend={6.1} color={C.accentMid} />
               </div>
-
-              {/* Charts */}
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr", gap: 14 }}>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px" }}>
                   <div style={{ marginBottom: 14 }}>
@@ -316,8 +332,6 @@ export default function App() {
                   }
                 </div>
               </div>
-
-              {/* Recent Transactions */}
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
                 <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Transaksi Terbaru</div>
