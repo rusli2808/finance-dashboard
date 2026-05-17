@@ -70,7 +70,9 @@ function TransactionRow({ tx, onDelete }) {
 }
 
 function AddModal({ onAdd, onClose }) {
-  const [form, setForm] = useState({ date: new Date().toISOString().split("T")[0], desc: "", category: "Revenue", amount: "", type: "income" });
+  const today = new Date();
+  const formattedDate = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const [form, setForm] = useState({ date: formattedDate, desc: "", category: "Revenue", amount: "", type: "income" });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const inputStyle = { width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" };
   return (
@@ -87,7 +89,7 @@ function AddModal({ onAdd, onClose }) {
             ))}
           </div>
           <input style={inputStyle} placeholder="Description" value={form.desc} onChange={e => set("desc", e.target.value)} />
-          <input style={inputStyle} type="number" placeholder="Amount (USD)" value={form.amount} onChange={e => set("amount", e.target.value)} />
+          <input style={inputStyle} type="number" placeholder="Jumlah (Rp)" value={form.amount} onChange={e => set("amount", e.target.value)} />
           <input style={inputStyle} type="date" value={form.date} onChange={e => set("date", e.target.value)} />
           <select style={inputStyle} value={form.category} onChange={e => set("category", e.target.value)}>
             {["Revenue", "Payroll", "Operations", "Marketing", "Tech", "Assets", "Other"].map(c => <option key={c}>{c}</option>)}
