@@ -188,7 +188,7 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div>
                 <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Business Overview</h1>
-                <p style={{ color: C.sub, fontSize: 14 }}>May 2024 · All figures in USD</p>
+                <p style={{ color: C.sub, fontSize: 14 }}>Mei 2024 · Semua angka dalam Rupiah</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
                 <KPICard label="Total Revenue" value={fmt(stats.income)} sub="vs last month" trend={12.4} color={C.accent} />
