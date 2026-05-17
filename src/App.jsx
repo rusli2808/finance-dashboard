@@ -40,8 +40,8 @@ const expenseCategories = [
   { name: "Assets", value: 1800, color: "#c47d2a" },
 ];
 
-const fmt = (n) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
-const fmtShort = (n) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n}`;
+const fmt = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
+const fmtShort = (n) => n >= 1000000 ? `Rp${(n / 1000000).toFixed(1)}jt` : n >= 1000 ? `Rp${(n / 1000).toFixed(0)}rb` : `Rp${n}`;
 
 function KPICard({ label, value, sub, trend, color = C.accent }) {
   const up = trend >= 0;
