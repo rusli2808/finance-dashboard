@@ -84,7 +84,7 @@ function AddModal({ onAdd, onClose }) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", gap: 8 }}>
-            {["income", "expense"].map(t => (
+            {["pemasukan", "pengeluaran"].map(t => (
               <button key={t} onClick={() => set("type", t)} style={{ flex: 1, padding: "8px", borderRadius: 8, border: `2px solid ${form.type === t ? (t === "income" ? C.accent : C.danger) : C.border}`, background: form.type === t ? (t === "income" ? C.accentLight : C.dangerLight) : "transparent", color: form.type === t ? (t === "income" ? C.accent : C.danger) : C.sub, fontWeight: 700, fontSize: 13, cursor: "pointer", textTransform: "capitalize" }}>{t}</button>
             ))}
           </div>
@@ -128,7 +128,7 @@ export default function App() {
 
   const addTx = (tx) => setTransactions(t => [tx, ...t]);
   const deleteTx = (id) => setTransactions(t => t.filter(x => x.id !== id));
-  const tabs = ["overview", "cashflow", "expenses", "transactions"];
+  const tabs = ["ringkasan", "arus kas", "pengeluaran", "transaksi"];
 
   return (
     <>
@@ -167,16 +167,16 @@ export default function App() {
                 <p style={{ color: C.sub, fontSize: 14 }}>Mei 2024 · Semua angka dalam Rupiah</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-                <KPICard label="Total Revenue" value={fmt(stats.income)} sub="vs last month" trend={12.4} color={C.accent} />
-                <KPICard label="Total Expenses" value={fmt(stats.expense)} sub="vs last month" trend={-5.2} color={C.danger} />
-                <KPICard label="Net Profit" value={fmt(stats.profit)} sub="vs last month" trend={18.7} color={C.gold} />
-                <KPICard label="Profit Margin" value={`${stats.margin}%`} sub="vs last month" trend={6.1} color={C.accentMid} />
+                <KPICard label="Total Pendapatan" value={fmt(stats.income)} sub="vs bulan lalu" trend={12.4} color={C.accent} />
+                <KPICard label="Total Pengeluaran" value={fmt(stats.expense)} sub="vs bulan lalu" trend={-5.2} color={C.danger} />
+                <KPICard label="Laba Bersih" value={fmt(stats.profit)} sub="vs bulan lalu" trend={18.7} color={C.gold} />
+                <KPICard label="Margin Laba" value={`${stats.margin}%`} sub="vs bulan lalu" trend={6.1} color={C.accentMid} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px 22px" }}>
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Revenue vs Expenses</div>
-                    <div style={{ fontSize: 12, color: C.sub }}>6-month trend</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Pendapatan vs Pengeluaran</div>
+                    <div style={{ fontSize: 12, color: C.sub }}>Tren 6 bulan</div>
                   </div>
                   <ResponsiveContainer width="100%" height={200}>
                     <AreaChart data={cashflowData}>
@@ -201,8 +201,8 @@ export default function App() {
                 </div>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px 22px" }}>
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Expense Breakdown</div>
-                    <div style={{ fontSize: 12, color: C.sub }}>By category</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Rincian Pengeluaran</div>
+                    <div style={{ fontSize: 12, color: C.sub }}>Per kategori</div>
                   </div>
                   <ResponsiveContainer width="100%" height={140}>
                     <PieChart>
@@ -225,8 +225,8 @@ export default function App() {
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
                 <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Recent Transactions</div>
-                  <button onClick={() => setActiveTab("transactions")} style={{ background: "none", border: "none", color: C.accent, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>View all →</button>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Transaksi Terbaru</div>
+                  <button onClick={() => setActiveTab("transactions")} style={{ background: "none", border: "none", color: C.accent, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>Lihat semua →</button>
                 </div>
                 {transactions.slice(0, 5).map(tx => <TransactionRow key={tx.id} tx={tx} onDelete={deleteTx} />)}
               </div>
@@ -237,7 +237,7 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div>
                 <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Arus Kas</h1>
-                <p style={{ color: C.sub, fontSize: 14 }}>Monthly income vs expenses · 6-month view</p>
+                <p style={{ color: C.sub, fontSize: 14 }}>Pendapatan vs pengeluaran bulanan · 6 bulan terakhir</p>
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
                 <ResponsiveContainer width="100%" height={320}>
@@ -274,11 +274,11 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div>
                 <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Analisis Pengeluaran</h1>
-                <p style={{ color: C.sub, fontSize: 14 }}>Where your money is going</p>
+                <p style={{ color: C.sub, fontSize: 14 }}>Kemana uang kamu pergi</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 16 }}>By Category</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 16 }}>Per Kategori</div>
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
                       <Pie data={expenseCategories} cx="50%" cy="50%" outerRadius={90} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
@@ -289,7 +289,7 @@ export default function App() {
                   </ResponsiveContainer>
                 </div>
                 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 16 }}>Breakdown</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: C.text, marginBottom: 16 }}>Rincian</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {expenseCategories.map(e => {
                       const total = expenseCategories.reduce((s, x) => s + x.value, 0);
@@ -320,7 +320,7 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                 <div>
                   <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Transaksi</h1>
-                  <p style={{ color: C.sub, fontSize: 14 }}>{filtered.length} records</p>
+                  <p style={{ color: C.sub, fontSize: 14 }}>{filtered.length} data</p>
                 </div>
                 <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Add</button>
               </div>
@@ -333,7 +333,7 @@ export default function App() {
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, overflow: "hidden" }}>
                 {filtered.length === 0
-                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub }}>No transactions found</div>
+                  ? <div style={{ padding: 40, textAlign: "center", color: C.sub }}>Tidak ada transaksi</div>
                   : filtered.map(tx => <TransactionRow key={tx.id} tx={tx} onDelete={deleteTx} />)}
               </div>
             </div>
