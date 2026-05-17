@@ -79,7 +79,7 @@ function AddModal({ onAdd, onClose }) {
     <div style={{ position: "fixed", inset: 0, background: "#0006", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
       <div style={{ background: C.surface, borderRadius: 20, padding: 28, width: 380, boxShadow: "0 24px 60px #0002" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 700, color: C.text }}>Add Transaction</span>
+          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 700, color: C.text }}>Tambah Transaksi</span>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, color: C.sub, cursor: "pointer" }}>×</button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -88,11 +88,11 @@ function AddModal({ onAdd, onClose }) {
               <button key={t} onClick={() => set("type", t)} style={{ flex: 1, padding: "8px", borderRadius: 8, border: `2px solid ${form.type === t ? (t === "income" ? C.accent : C.danger) : C.border}`, background: form.type === t ? (t === "income" ? C.accentLight : C.dangerLight) : "transparent", color: form.type === t ? (t === "income" ? C.accent : C.danger) : C.sub, fontWeight: 700, fontSize: 13, cursor: "pointer", textTransform: "capitalize" }}>{t}</button>
             ))}
           </div>
-          <input style={inputStyle} placeholder="Description" value={form.desc} onChange={e => set("desc", e.target.value)} />
+          <input style={inputStyle} placeholder="Keterangan" value={form.desc} onChange={e => set("desc", e.target.value)} />
           <input style={inputStyle} type="number" placeholder="Jumlah (Rp)" value={form.amount} onChange={e => set("amount", e.target.value)} />
           <input style={inputStyle} type="date" value={form.date} onChange={e => set("date", e.target.value)} />
           <select style={inputStyle} value={form.category} onChange={e => set("category", e.target.value)}>
-            {["Revenue", "Payroll", "Operations", "Marketing", "Tech", "Assets", "Other"].map(c => <option key={c}>{c}</option>)}
+            {["Pendapatan", "Gaji", "Operasional", "Marketing", "Teknologi", "Aset", "Lainnya"].map(c => <option key={c}>{c}</option>)}
           </select>
           <button onClick={() => { if (form.desc && form.amount) { onAdd({ ...form, id: Date.now(), amount: parseFloat(form.amount) }); onClose(); } }}
             style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "11px", fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 4 }}>
@@ -155,7 +155,7 @@ export default function App() {
                 <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: activeTab === tab ? C.accentLight : "transparent", color: activeTab === tab ? C.accent : C.sub, fontWeight: 600, fontSize: 13, cursor: "pointer", textTransform: "capitalize", transition: "all 0.15s" }}>{tab}</button>
               ))}
             </div>
-            <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Add Transaction</button>
+            <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "8px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Tambah Transaksi</button>
           </div>
         </div>
 
@@ -163,7 +163,7 @@ export default function App() {
           {activeTab === "overview" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Business Overview</h1>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Ringkasan Bisnis</h1>
                 <p style={{ color: C.sub, fontSize: 14 }}>Mei 2024 · Semua angka dalam Rupiah</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
@@ -236,7 +236,7 @@ export default function App() {
           {activeTab === "cashflow" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Cash Flow</h1>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Arus Kas</h1>
                 <p style={{ color: C.sub, fontSize: 14 }}>Monthly income vs expenses · 6-month view</p>
               </div>
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px" }}>
@@ -273,7 +273,7 @@ export default function App() {
           {activeTab === "expenses" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div>
-                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Expense Analysis</h1>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Analisis Pengeluaran</h1>
                 <p style={{ color: C.sub, fontSize: 14 }}>Where your money is going</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -319,15 +319,15 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                 <div>
-                  <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Transactions</h1>
+                  <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 4 }}>Transaksi</h1>
                   <p style={{ color: C.sub, fontSize: 14 }}>{filtered.length} records</p>
                 </div>
                 <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ Add</button>
               </div>
               <div style={{ display: "flex", gap: 10 }}>
-                <input placeholder="Search transactions..." value={search} onChange={e => setSearch(e.target.value)}
+                <input placeholder="Cari transaksi..." value={search} onChange={e => setSearch(e.target.value)}
                   style={{ flex: 1, padding: "9px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none" }} />
-                {["all", "income", "expense"].map(f => (
+                {["semua", "pemasukan", "pengeluaran"].map(f => (
                   <button key={f} onClick={() => setFilterType(f)} style={{ padding: "9px 16px", borderRadius: 10, border: `1px solid ${filterType === f ? C.accent : C.border}`, background: filterType === f ? C.accentLight : C.surface, color: filterType === f ? C.accent : C.sub, fontWeight: 600, fontSize: 13, cursor: "pointer", textTransform: "capitalize" }}>{f}</button>
                 ))}
               </div>
