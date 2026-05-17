@@ -25,14 +25,14 @@ function useIsMobile() {
 function KPICard({ label, value, sub, trend, color = C.accent }) {
   const up = trend >= 0;
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={{ fontSize: 11, fontWeight: 700, color: C.sub, textTransform: "uppercase", letterSpacing: 1.2 }}>{label}</span>
-      <span style={{ fontSize: 26, fontWeight: 800, color: C.text, fontFamily: "'Fraunces', serif", letterSpacing: -0.5 }}>{value}</span>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ fontSize: 12, color: up ? C.success : C.danger, fontWeight: 600 }}>{up ? "▲" : "▼"} {Math.abs(trend)}%</span>
-        <span style={{ fontSize: 12, color: C.sub }}>{sub}</span>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "14px", display: "flex", flexDirection: "column", gap: 4 }}>
+      <span style={{ fontSize: 10, fontWeight: 700, color: C.sub, textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
+      <span style={{ fontSize: 18, fontWeight: 800, color: C.text, fontFamily: "'Fraunces', serif", letterSpacing: -0.5, wordBreak: "break-all" }}>{value}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ fontSize: 11, color: up ? C.success : C.danger, fontWeight: 600 }}>{up ? "▲" : "▼"} {Math.abs(trend)}%</span>
+        <span style={{ fontSize: 10, color: C.sub }}>{sub}</span>
       </div>
-      <div style={{ height: 3, background: C.border, borderRadius: 2, marginTop: 4 }}>
+      <div style={{ height: 3, background: C.border, borderRadius: 2, marginTop: 2 }}>
         <div style={{ height: "100%", width: `${Math.min(100, Math.abs(trend) * 3)}%`, background: color, borderRadius: 2 }} />
       </div>
     </div>
