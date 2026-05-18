@@ -16,5 +16,27 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+  // Remove Vercel toolbar
+  function removeVercelToolbar() {
+    const toolbar = document.querySelector('vercel-live-feedback') || 
+                    document.querySelector('#vercel-toolbar') ||
+                    document.querySelector('[data-vercel-toolbar]');
+    if (toolbar) toolbar.remove();
+    
+    // Also check shadow DOM
+    const all = document.querySelectorAll('*');
+    all.forEach(el => {
+      if (el.tagName && el.tagName.toLowerCase().includes('vercel')) {
+        el.remove();
+      }
+    });
+  }
+  
+  // Run multiple times to catch delayed load
+  document.addEventListener('DOMContentLoaded', removeVercelToolbar);
+  setTimeout(removeVercelToolbar, 1000);
+  setTimeout(removeVercelToolbar, 3000);
+</script>
   </body>
 </html>
