@@ -24,16 +24,7 @@ function useIsMobile() {
   }, []);
   return isMobile;
 }
-useEffect(() => {
-  const timer = setInterval(() => {
-    const toolbar = document.querySelector('vercel-live-feedback');
-    if (toolbar) {
-      toolbar.remove();
-      clearInterval(timer);
-    }
-  }, 500);
-  return () => clearInterval(timer);
-}, []);
+
 function KPICard({ label, value, sub, trend, color = C.accent }) {
   const up = trend >= 0;
   return (
