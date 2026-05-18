@@ -245,7 +245,14 @@ if (window.location.pathname === '/reset-password' || window.location.hash.inclu
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }
         input, select { font-family: 'Instrument Sans', sans-serif; }
-      `}</style>
+      `}
+      /* Hide Vercel toolbar */
+vercel-live-feedback,
+vercel-toolbar,
+#vercel-toolbar,
+[data-vercel-toolbar] {
+  display: none !important;
+}</style>
 
       <div style={{ minHeight: "100vh", background: C.bg }}>
         <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: isMobile ? "0 16px" : "0 32px" }}>
