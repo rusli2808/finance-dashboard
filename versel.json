@@ -3,3 +3,8 @@
     "enabled": false
   }
 }
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
